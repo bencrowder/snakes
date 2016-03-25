@@ -1,0 +1,101 @@
+# Snakes
+# by Ben Crowder
+
+# Note: The code is a bit messy.
+
+from random import seed
+from math import sin
+
+CURVE_SIZE = 15
+
+CIRCLE_HUE_MIN = 0.0
+CIRCLE_HUE_MAX = 0.4
+
+BG_HUE_MIN = 0.1
+BG_HUE_MAX = 0.2
+
+NUM_SEGMENTS = 20
+NUM_COLS = 21
+COL_SIZE = 100
+COL_SPACING = 63
+
+BASE_Y = -200
+GAP = 10
+
+seed(8)
+
+size(2000, 2000)
+
+background(HSV, random(BG_HUE_MIN, BG_HUE_MAX), random(0.03, 0.1), random(0.96,0.98))
+
+def draw_col(x, y, angle, col_num, settings):
+    head_size = 60
+    half_head_size = head_size / 2
+    segment_lengths = settings['segment_lengths']
+    segment_sizes = settings['segment_sizes']
+    num_segments = len(segment_lengths)
+    
+    push()
+    translate(x, y)
+    
+    # Draw the head
+	# Note: this is a remnant from earlier when I was trying to do something else
+    head_fill = (HSV, random(0.1, 0.2), random(0.1, 0.3), random(0.3,0.6))
+    fill(head_fill)
+    oval(-half_head_size, 0, head_size, head_size)
+    
+    # Draw each segment
+    segment_base_y = head_size
+    last_segment_size = head_size / 2
+    for i in range(0, num_segments):
+        translate(sin(i) * CURVE_SIZE, 0)
+        segment_length = segment_lengths[i]
+        
+        line_width = random(3, 8)
+        line_stroke = (HSV, random(0.0, 0.1), random(0.15, 0.4), random(0.4,0.55))
+        pen(line_width)
+        stroke(line_stroke)
+        
+        if col_num % 2 == 0:
+            line(-last_segment_size, segment_base_y + GAP, segment_sizes[i] / 2, segment_base_y + segment_length - GAP)
+        else:
+            line(last_segment_size, segment_base_y + GAP, -segment_sizes[i] / 2, segment_base_y + segment_length - GAP)
+        
+        hue = random(CIRCLE_HUE_MIN, CIRCLE_HUE_MAX)
+        
+        segment_base_y += segment_length        
+        stroke(None)
+        
+        translate(sin(i+0.1) * CURVE_SIZE, 0)
+        # Outer circle
+        bigger_size = random(5, 15)
+        half_bigger_size = bigger_size / 2
+        fill(HSV, hue, random(0.2, 0.4), random(0.8, 0.9))
+        oval(-segment_sizes[i] / 2 - half_bigger_size, segment_base_y - half_bigger_size, segment_sizes[i] + bigger_size, segment_sizes[i] + bigger_size)
+        
+        # Inner circle
+        fill(HSV, hue, random(0.1, 0.3), random(0.2, 0.5))
+        oval(-segment_sizes[i] / 2, segment_base_y, segment_sizes[i], segment_sizes[i])
+        
+        segment_base_y += segment_sizes[i]
+        last_segment_size = segment_sizes[i] / 2
+    
+    pop()
+
+blend("hard-light")
+pen(cap=ROUND)
+
+for x in range(0, NUM_COLS):
+    segment_lengths = []
+    segment_sizes = []
+
+    for i in range(0, NUM_SEGMENTS):
+        segment_lengths.append(random(30, 150))
+        segment_sizes.append(random(60, 90))
+    
+    draw_col(x*(COL_SIZE+COL_SPACING), BASE_Y, 0, x, {
+        'segment_lengths': segment_lengths,
+        'segment_sizes': segment_sizes,
+    })
+    
+export("snakes.pdf")
